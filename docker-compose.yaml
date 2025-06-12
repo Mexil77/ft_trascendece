@@ -1,0 +1,48 @@
+services:
+  nginx:
+    container_name: nginx-lb
+    build:
+      context: ./reverse-proxy
+      dockerfile: Dockerfile
+    ports:
+      # Port 8080:443 mapping means: 1. host machine exposes port 8080, 2. nginx listens on port 443
+      # Useful when you can't expose a priviledged port but want to run the service as priviledged
+      - "8080:443"
+    volumes:
+      - ./frontend/dist:/var/www/html:ro
+      # - front-spa:/var/www/html
+    depends_on:
+      - frontend-dev
+      # - frontend
+    networks:
+      - transcendence-network
+
+  # frontend:
+  #   container_name: frontend-spa
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: Dockerfile
+  #   volumes:
+  #     - front-spa:/usr/src/app/
+  #   networks:
+  #     - transcendence-network
+
+  frontend-dev:
+    container_name: frontend-dev
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./frontend/dis:/usr/src/app # Monta todo el código fuente
+      - /usr/src/app/node_modules # Evita sobreescribir node_modules
+      - frontend-dev:/usr/src/app/dist # Asegura que dist se sincroniza
+    networks:
+      - transcendence-network
+
+volumes:
+  frontend-dev:
+# front-spa:
+
+networks:
+  transcendence-network:
+    driver: bridge
