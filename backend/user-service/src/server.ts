@@ -2,9 +2,10 @@ import Fastify, {
 	FastifyInstance,
 	RouteShorthandOptions,
 } from "fastify";
+import cors from "@fastify/cors";
 import { Server, IncomingMessage, ServerResponse } from "http";
 
-const server: FastifyInstance = Fastify({});
+const server: FastifyInstance = Fastify({ logger: true });
 
 const opts: RouteShorthandOptions = {
 	schema: {
@@ -27,6 +28,7 @@ server.get("/ping", opts, async (request, reply) => {
 
 const start = async () => {
 	try {
+		await server.register(cors, { origin: "*" });
 		await server.listen({ port: 3000 });
 
 		const address = server.server.address();
