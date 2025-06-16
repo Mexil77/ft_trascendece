@@ -3,7 +3,7 @@ const div = document.createElement("div");
 const card = document.createElement("button");
 card.className =
 	"card w-64 h-80 bg-gray-800 text-white p-6 rounded-lg shadow-lg relative overflow-hidden transition-transform duration-300 hover:scale-105";
-card.textContent = "click";
+card.textContent = "click dinamico";
 card.addEventListener("click", () => {
 	fetch("http://localhost:3000/ping")
 		.then((response) => {
