@@ -13,7 +13,7 @@ const opts: RouteShorthandOptions = {
 			200: {
 				type: "object",
 				properties: {
-					pong: {
+					carro: {
 						type: "string",
 					},
 				},
@@ -22,14 +22,14 @@ const opts: RouteShorthandOptions = {
 	},
 };
 
-server.get("/ping", opts, async (request, reply) => {
-	return { pong: "it worked" };
+server.get("/casa", opts, async (request, reply) => {
+	return { carro: "it worked slowly" };
 });
 
 const start = async () => {
 	try {
 		await server.register(cors, { origin: "*" });
-		const port = Number(process.env.PORT) || 3002;
+		const port = Number(process.env.PORT) || 3001;
 		server.listen({ port, host: "0.0.0.0" }, (err, address) => {
 			if (err) {
 				console.error(err);
@@ -37,10 +37,6 @@ const start = async () => {
 			}
 			console.log(`🚀 Server running at ${address}`);
 		});
-
-		// const address = server.server.address();
-		// const port =
-		// 	typeof address === "string" ? address : address?.port;
 	} catch (err) {
 		server.log.error(err);
 		process.exit(1);
