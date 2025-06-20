@@ -1,6 +1,12 @@
 import { Navbar } from "./components/index.js";
-import { LoginPage } from "./pages/index.js";
+import { NavigateTo } from "./router.js";
 
-const app = document.getElementById("app");
-app?.appendChild(LoginPage());
-document.body.insertBefore(Navbar(), app);
+document.addEventListener("DOMContentLoaded", () => {
+	window.addEventListener("popstate", () => {
+		NavigateTo(window.location.pathname);
+	});
+
+	NavigateTo(window.location.pathname);
+	const app = document.getElementById("app");
+	document.body.insertBefore(Navbar(), app);
+});
