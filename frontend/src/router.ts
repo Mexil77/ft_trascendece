@@ -1,5 +1,10 @@
 import { Route } from "./interfaces/index.js";
-import { LoginPage, SingInPage, HomePage } from "./pages/index.js";
+import {
+	LoginPage,
+	SingInPage,
+	HomePage,
+	ConfigGamePage,
+} from "./pages/index.js";
 
 const routes: Route[] = [
 	{
@@ -16,6 +21,11 @@ const routes: Route[] = [
 		path: "/singin",
 		component: SingInPage(),
 		protected: false,
+	},
+	{
+		path: "/configGame",
+		component: ConfigGamePage(),
+		protected: true,
 	},
 ];
 
