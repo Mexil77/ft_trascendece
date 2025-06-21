@@ -3,12 +3,11 @@ import { FormTypes } from "../enums/index.js";
 import { FormData } from "../interfaces/index.js";
 import { NavigateTo } from "../router.js";
 
-const loginForm: FormData = {
-	title: "Login",
-	submitButton: "Iniciar sesion",
+const singinForm: FormData = {
+	title: "Singin",
+	submitButton: "Crearr cuenta",
 	submitAction: () => {
-		localStorage.setItem("authToken", "testtoken");
-		NavigateTo("/singin");
+		NavigateTo("/login");
 	},
 	sections: [
 		{
@@ -26,16 +25,22 @@ const loginForm: FormData = {
 					placeholder: "Correo",
 					id: "Correo1",
 				},
+				{
+					type: FormTypes.PASSWORD,
+					label: "password",
+					placeholder: "Contrasena",
+					id: "password",
+				},
 			],
 		},
 	],
 };
 
-export const LoginPage = () => {
-	const div = document.createElement("div");
-	div.className =
+export const SingInPage = () => {
+	const singinPageDiv = document.createElement("div");
+	singinPageDiv.className =
 		"mx-auto flex max-w-lg items-center gap-x-4 rounded-xl bg-white p-4 shadow-lg outline outline-black/5 dark:bg-slate-800 dark:shadow-none dark:-outline-offset-1 dark:outline-white/10";
-	const form = makeForm(loginForm);
-	div.appendChild(form);
-	return div;
+	const form = makeForm(singinForm);
+	singinPageDiv.appendChild(form);
+	return singinPageDiv;
 };

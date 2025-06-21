@@ -1,5 +1,6 @@
 export enum FormTypes {
-	text,
-	email,
-	password,
+	TEXT = "text",
+	EMAIL = "email",
+	PASSWORD = "password",
+	NUMBER = "number",
 }
