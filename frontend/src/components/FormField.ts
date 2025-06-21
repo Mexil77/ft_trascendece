@@ -14,7 +14,7 @@ export const makeFormFiled = (input: InputData) => {
 	inputHtml.className =
 		" border border-sky-500 focus:outline-none focus:border-emerald-500 px-3 py-2 rounded-md";
 	inputHtml.placeholder = input.placeholder;
-	inputHtml.type = `${input.type}`;
+	inputHtml.type = input.type;
 	inputHtml.id = input.id;
 
 	formField.appendChild(inputHtml);

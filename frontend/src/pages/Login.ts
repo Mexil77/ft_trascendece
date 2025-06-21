@@ -15,13 +15,13 @@ const loginForm: FormData = {
 			sectionName: "Datos",
 			inputs: [
 				{
-					type: FormTypes.text,
+					type: FormTypes.TEXT,
 					label: "Nombre",
 					placeholder: "Nombre",
 					id: "Nombre1",
 				},
 				{
-					type: FormTypes.email,
+					type: FormTypes.EMAIL,
 					label: "Correo",
 					placeholder: "Correo",
 					id: "Correo1",

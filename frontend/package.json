@@ -9,7 +9,7 @@
 		"dev": "concurrently \"npm:watch:ts\" \"npm:watch:tailwind\" \"npm:serve\"",
 		"watch:ts": "tsc --watch",
 		"watch:tailwind": "tailwindcss -i ./styles.css -o ./dist/styles.css --watch",
-		"serve": "nodemon --watch dist --exec \"npx serve . -l 4000\""
+		"serve": "nodemon --watch dist --exec \"npx serve . -l 4000 -s\""
 	},
 	"author": "",
 	"license": "ISC",
