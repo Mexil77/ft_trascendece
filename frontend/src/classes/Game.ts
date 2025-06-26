@@ -1,0 +1,257 @@
+import { Player, Ball } from "./index.js";
+import { Orientation, Directions } from "../enums/index.js";
+
+export class Game {
+	MaxPoints = 0;
+	canvasGame = document.createElement("canvas");
+	ctx: CanvasRenderingContext2D | null;
+	user: Player | null = null;
+	cpu: Player | null = null;
+	ball: Ball | null = null;
+	orientation: Orientation | null = null;
+
+	keys = {
+		w: false,
+		s: false,
+	};
+
+	constructor(maxPoints: number, orientation: Orientation) {
+		this.MaxPoints = maxPoints;
+		this.canvasGame.id = "pong";
+		this.canvasGame.className = "border bg-gray-950";
+		this.canvasGame.width = 800;
+		this.canvasGame.height = 500;
+		this.ctx = this.canvasGame.getContext("2d");
+
+		this.orientation = orientation;
+		this.user = new Player(
+			0,
+			this.canvasGame.height / 2 - 50,
+			10,
+			100,
+			7,
+			"white",
+			"0",
+			Directions.LEFT
+		);
+		this.cpu = new Player(
+			this.canvasGame.width - 10,
+			this.canvasGame.height / 2 - 50,
+			10,
+			100,
+			7,
+			"white",
+			"0",
+			Directions.RIGHT
+		);
+		this.ball = new Ball(
+			this.canvasGame.width / 2,
+			this.canvasGame.height / 2,
+			10,
+			5,
+			5,
+			5,
+			"white"
+		);
+
+		document.addEventListener("keydown", (e) => {
+			if (e.key === "w" || e.key === "W") this.keys.w = true;
+			if (e.key === "s" || e.key === "S") this.keys.s = true;
+		});
+
+		// Detectar teclas soltadas
+		document.addEventListener("keyup", (e) => {
+			if (e.key === "w" || e.key === "W") this.keys.w = false;
+			if (e.key === "s" || e.key === "S") this.keys.s = false;
+		});
+	}
+
+	private intervalId: number | null = null;
+	static currentInstance: Game | null = null;
+
+	drawRect(
+		x: number,
+		y: number,
+		w: number,
+		h: number,
+		color: string
+	) {
+		if (this.ctx) {
+			this.ctx.fillStyle = color;
+			this.ctx.fillRect(x, y, w, h);
+		}
+	}
+
+	// Dibujar círculo (pelota)
+	drawCircle(x: number, y: number, r: number, color: string) {
+		if (this.ctx) {
+			this.ctx.fillStyle = color;
+			this.ctx.beginPath();
+			this.ctx.arc(x, y, r, 0, Math.PI * 2, false);
+			this.ctx.closePath();
+			this.ctx.fill();
+		}
+	}
+
+	// Dibujar texto
+	drawText(text: string, x: number, y: number, color: string) {
+		if (this.ctx) {
+			this.ctx.fillStyle = color;
+			this.ctx.font = "45px Arial";
+			this.ctx.fillText(text, x, y);
+		}
+	}
+
+	// Control del jugador mouse
+	// this.canvasGame.addEventListener("mousemove", (evt) => {
+	// 	let rect = this.canvasGame.getBoundingClientRect();
+	// 	user.y = evt.clientY - rect.top - user.height / 2;
+	// });
+
+	// Control del jugador teclado
+
+	update = () => {
+		if (this.keys.w) this.user?.moveUp();
+		if (this.keys.s) this.user?.moveDown();
+
+		// Limitar movimiento a los bordes
+		this.user?.colideBorderBoard(this.canvasGame.height);
+
+		this.ball?.moveBall();
+
+		// rebote arriba/abajo
+		this.ball?.colideBorderBoard(this.canvasGame.height);
+
+		// CPU sigue la pelota
+		if (this.cpu && this.ball)
+			this.cpu.posY +=
+				(this.ball.posY - (this.cpu.posY + this.cpu.height / 2)) *
+				0.1;
+
+		// colisión con jugador
+		let playerColider: Player | null = null;
+		if (this.ball && this.user && this.cpu) {
+			playerColider = this.ball?.playerColided(this.user, this.cpu);
+		}
+
+		if (this.ball && playerColider) {
+			// ángulo de rebote
+			let collidePoint =
+				this.ball.posY -
+				(playerColider.posY + playerColider.height / 2);
+			collidePoint = collidePoint / (playerColider.height / 2);
+
+			let angleRad = (Math.PI / 4) * collidePoint;
+			let direction =
+				this.ball.posX < this.canvasGame.width / 2 ? 1 : -1;
+
+			this.ball.velocityX =
+				direction * this.ball.speed * Math.cos(angleRad);
+			this.ball.velocityY = this.ball.speed * Math.sin(angleRad);
+			this.ball.speed += 0.5;
+		}
+
+		// puntua jugador
+		if (
+			this.ball &&
+			this.cpu &&
+			this.ball.posX - this.ball.radius < 0
+		) {
+			this.cpu.score = `${Number(this.cpu.score) + 1}`;
+			this.resetBall();
+		} else if (
+			this.user &&
+			this.ball &&
+			this.ball.posX + this.ball.radius > this.canvasGame.width
+		) {
+			this.user.score = `${Number(this.user?.score) + 1}`;
+			this.resetBall();
+		}
+	};
+
+	resetBall() {
+		this.ball = new Ball(
+			this.canvasGame.width / 2,
+			this.canvasGame.height / 2,
+			10,
+			5,
+			this.ball && this.ball.velocityX > 0 ? -5 : 5,
+			5,
+			"white"
+		);
+	}
+
+	// Dibujar todo
+	render() {
+		this.drawRect(
+			0,
+			0,
+			this.canvasGame.width,
+			this.canvasGame.height,
+			"#000"
+		); // fondo
+		this.drawText(
+			this.user?.score ?? "",
+			this.canvasGame.width / 4,
+			50,
+			"white"
+		);
+		this.drawText(
+			this.cpu?.score ?? "",
+			(3 * this.canvasGame.width) / 4,
+			50,
+			"white"
+		);
+
+		this.drawRect(
+			this.user?.posX ?? 0,
+			this.user?.posY ?? 0,
+			this.user?.width ?? 0,
+			this.user?.height ?? 0,
+			this.user?.color ?? ""
+		);
+		this.drawRect(
+			this.cpu?.posX ?? 0,
+			this.cpu?.posY ?? 0,
+			this.cpu?.width ?? 0,
+			this.cpu?.height ?? 0,
+			this.cpu?.color ?? ""
+		);
+		if (this.ball) {
+			this.drawCircle(
+				this.ball.posX,
+				this.ball.posY,
+				this.ball.radius,
+				this.ball.color
+			);
+		}
+	}
+
+	game() {
+		this.update();
+		this.render();
+		if (
+			Number(this.user?.score) >= this.MaxPoints ||
+			Number(this.cpu?.score) >= this.MaxPoints
+		) {
+			this.stopGame();
+		}
+		console.log("GameLoop");
+	}
+
+	startGame() {
+		this.stopGame();
+		const framePerSecond = 60;
+		this.intervalId = window.setInterval(
+			() => this.game(),
+			1000 / framePerSecond
+		);
+	}
+
+	stopGame() {
+		if (this.intervalId !== null) {
+			clearInterval(this.intervalId);
+			this.intervalId = null;
+		}
+	}
+}

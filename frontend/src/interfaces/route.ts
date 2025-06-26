@@ -1,5 +1,5 @@
 export interface Route {
 	path: string;
-	component: HTMLElement;
+	component: () => HTMLElement;
 	protected: boolean;
 }
