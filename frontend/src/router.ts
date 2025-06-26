@@ -1,21 +1,38 @@
+import { Game } from "./classes/index.js";
 import { Route } from "./interfaces/index.js";
-import { LoginPage, SingInPage, HomePage } from "./pages/index.js";
+import {
+	LoginPage,
+	SingInPage,
+	HomePage,
+	ConfigGamePage,
+	GamePage,
+} from "./pages/index.js";
 
 const routes: Route[] = [
 	{
 		path: "/",
-		component: HomePage(),
+		component: HomePage,
 		protected: true,
 	},
 	{
 		path: "/login",
-		component: LoginPage(),
+		component: LoginPage,
 		protected: false,
 	},
 	{
 		path: "/singin",
-		component: SingInPage(),
+		component: SingInPage,
 		protected: false,
+	},
+	{
+		path: "/configGame",
+		component: ConfigGamePage,
+		protected: true,
+	},
+	{
+		path: "/game",
+		component: GamePage,
+		protected: true,
 	},
 ];
 
@@ -26,6 +43,11 @@ const isAuth = () => {
 const render = () => {
 	const app = document.getElementById("app");
 	if (!app) return;
+
+	if (Game.currentInstance) {
+		Game.currentInstance.stopGame();
+		Game.currentInstance = null;
+	}
 
 	app.innerHTML = "";
 
@@ -44,7 +66,7 @@ const render = () => {
 		return;
 	}
 
-	app.appendChild(route.component);
+	app.appendChild(route.component());
 };
 
 export const NavigateTo = (path: string) => {

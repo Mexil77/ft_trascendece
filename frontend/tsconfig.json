@@ -5,7 +5,8 @@
 		"moduleResolution": "NodeNext",
 		"outDir": "./dist",
 		"rootDir": "./src",
-		"strict": true
+		"strict": true,
+		"lib": ["es2017", "dom"]
 	},
 	"include": ["src"]
 }

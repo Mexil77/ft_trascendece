@@ -8,7 +8,7 @@ const loginForm: FormData = {
 	submitButton: "Iniciar sesion",
 	submitAction: () => {
 		localStorage.setItem("authToken", "testtoken");
-		NavigateTo("/singin");
+		NavigateTo("/");
 	},
 	sections: [
 		{
