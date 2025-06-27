@@ -16,6 +16,7 @@ services:
     build: ./backend/user-service
     volumes:
       - ./backend/user-service:/app
+      - /app/node_modules
     working_dir: /app
     command: npm run dev
     ports:

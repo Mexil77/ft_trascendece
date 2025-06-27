@@ -9,7 +9,7 @@ export const UserController = (fastify: FastifyInstance) => {
 			res
 		) => {
 			const { userId } = req.params;
-			return UserService.getUser(userId);
+			return UserService.getUser(req, userId);
 		}
 	);
 };

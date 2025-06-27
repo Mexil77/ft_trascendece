@@ -1,6 +1,7 @@
 import Fastify, { FastifyInstance } from "fastify";
 import cors from "@fastify/cors";
 import { UserController } from "./controller.js";
+import dbConnector from "./database.js";
 
 const server: FastifyInstance = Fastify({ logger: true });
 
@@ -18,6 +19,7 @@ const start = async () => {
 			credentials: false,
 		});
 		await server.register(UserController);
+		await server.register(dbConnector);
 		server.listen(connectionSettings, (err, address) => {
 			if (err) {
 				console.error(err);
