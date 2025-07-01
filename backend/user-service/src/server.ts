@@ -5,6 +5,10 @@ import dbConnector from "./database.js";
 
 const server: FastifyInstance = Fastify({ logger: true });
 
+server.setErrorHandler((error, _, reply) => {
+	reply.code(error.statusCode ?? 500).send(error.message);
+});
+
 const connectionSettings = {
 	host: "0.0.0.0",
 	port: Number(process.env.PORT) || 3002,
