@@ -5,6 +5,8 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 
+RUN mkdir -p /data
+
 COPY . .
 
 EXPOSE 3002
