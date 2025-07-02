@@ -1,31 +1,13 @@
-import crypto from "crypto";
-import speakeasy from "speakeasy";
-import QRCode from "qrcode";
 import { FastifyReply, FastifyRequest } from "fastify";
-import { CreateUserDto } from "./interfaces/index.js";
 import { ErrorCodes } from "./enums/index.js";
-
-function hashPassword(password: string) {
-	const salt = crypto.randomBytes(32).toString("hex");
-	const hash = crypto
-		.pbkdf2Sync(password, salt, 100000, 64, "sha512")
-		.toString("hex");
-
-	return {
-		salt: salt,
-		hash: hash,
-	};
-}
-
-export default async function createQR() {
-	const secret = speakeasy.generateSecret();
-	const qrcode = await QRCode.toDataURL(secret.otpauth_url as string);
-	const data = {
-		sr: secret,
-		qr: qrcode,
-	};
-	return data;
-}
+import {
+	generateSecret,
+	hashPassword,
+	createWebToken,
+	otpVerificationCode,
+	constructQRByData,
+} from "./utils/index.js";
+import { CreateUserDto } from "./interfaces/index.js";
 
 export class UserService {
 	static async getUser(
@@ -53,6 +35,26 @@ export class UserService {
 		}
 	}
 
+	static async generateQR(
+		req: FastifyRequest<{ Body: { userName: string } }>,
+		rep: FastifyReply
+	) {
+		try {
+			const { userName } = req.body;
+
+			const db = req.server.db;
+			const query = db.prepare(
+				"SELECT qrSecret FROM users WHERE userName = ?"
+			);
+			const secret: any = query.get(userName);
+
+			const qr = await constructQRByData(secret.qrSecret);
+			rep.code(200).send({ message: "QrGenerated", QR: qr });
+		} catch (error) {
+			return { message: "error.auth.unexpectedError", code: 500 };
+		}
+	}
+
 	static async createUser(
 		req: FastifyRequest<{ Body: CreateUserDto }>,
 		rep: FastifyReply
@@ -76,13 +78,13 @@ export class UserService {
 				passwordStruct.salt
 			);
 
-			const data = await createQR();
-			const queryQr = db.prepare(
+			const secret = await generateSecret();
+			const updateQrSecretQuery = db.prepare(
 				"UPDATE users SET qrSecret = ? WHERE username = ?"
 			);
-			queryQr.run(data.sr.base32, userName);
+			updateQrSecretQuery.run(secret.base32, userName);
 
-			rep.send({ message: "Generate QR", QR: data.qr });
+			rep.send({ message: "UserCreated" });
 		} catch (error: any) {
 			if (error.code === ErrorCodes.PASSWORDNOTMATCH) {
 				throw {
@@ -94,6 +96,46 @@ export class UserService {
 				throw {
 					message: "error.auth.alreadyExist",
 					statusCode: 409,
+				};
+			}
+			return {
+				message: "error.auth.unexpectedError",
+				statusCode: 500,
+			};
+		}
+	}
+
+	static async verifyUser(
+		req: FastifyRequest<{
+			Body: { userName: string; otpCode: string };
+		}>,
+		rep: FastifyReply
+	) {
+		try {
+			const { userName, otpCode } = req.body;
+
+			const db = req.server.db;
+
+			const query = db.prepare(
+				"SELECT qrSecret, email FROM users WHERE username = ?"
+			);
+			const userInfo: any = query.get(userName);
+
+			if (!otpVerificationCode(userInfo.qrSecret, otpCode)) {
+				throw { code: "Not verify" };
+			}
+			const userToken = createWebToken(userName, userInfo.email);
+			rep.code(200).send({
+				message: "Verified OTP Code",
+				token: userToken,
+			});
+		} catch (error: any) {
+			console.error(error);
+
+			if (error.code === "Not verify") {
+				throw {
+					message: "error.auth.notVerify",
+					statusCode: 404,
 				};
 			}
 			return {

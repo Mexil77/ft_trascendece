@@ -25,4 +25,26 @@ export const UserController = (fastify: FastifyInstance) => {
 			return UserService.createUser(req, rep);
 		}
 	);
+	fastify.post(
+		"/generateQR",
+		async (
+			req: FastifyRequest<{
+				Body: { userName: string };
+			}>,
+			rep: FastifyReply
+		) => {
+			return UserService.generateQR(req, rep);
+		}
+	);
+	fastify.post(
+		"/verify",
+		async (
+			req: FastifyRequest<{
+				Body: { userName: string; otpCode: string };
+			}>,
+			rep: FastifyReply
+		) => {
+			return UserService.verifyUser(req, rep);
+		}
+	);
 };

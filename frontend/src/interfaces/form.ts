@@ -5,6 +5,7 @@ export interface InputData {
 	label: string;
 	id: string;
 	placeholder: string;
+	name: string;
 }
 
 export interface SectionData {
@@ -17,6 +18,6 @@ export interface FormData {
 	submitButton: string;
 	cancelButton?: string;
 	sections: SectionData[];
-	submitAction: () => void;
+	submitAction: (e: SubmitEvent) => void;
 	cancelAction?: () => void;
 }
