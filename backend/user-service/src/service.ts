@@ -1,5 +1,5 @@
 import { FastifyReply, FastifyRequest } from "fastify";
-import { ErrorCodes } from "./enums/index.js";
+import { ErrorCodes, TokenPurpose } from "./enums/index.js";
 import {
 	generateSecret,
 	hashPassword,
@@ -8,6 +8,9 @@ import {
 	constructQRByData,
 } from "./utils/index.js";
 import { CreateUserDto } from "./interfaces/index.js";
+import jwt from "jsonwebtoken";
+
+const JWT_SECRET = process.env.JWT_SECRET ?? "default_dev_secret";
 
 export class UserService {
 	static async getUser(
@@ -36,11 +39,24 @@ export class UserService {
 	}
 
 	static async generateQR(
-		req: FastifyRequest<{ Body: { userName: string } }>,
+		req: FastifyRequest<{
+			Headers: { authorization: string };
+		}>,
 		rep: FastifyReply
 	) {
 		try {
-			const { userName } = req.body;
+			const token = req.headers.authorization.replace(
+				/^Bearer\s+/i,
+				""
+			);
+
+			const payload = jwt.verify(token, JWT_SECRET) as {
+				userName: string;
+				email: string;
+				[key: string]: any;
+			};
+
+			const { userName } = payload;
 
 			const db = req.server.db;
 			const query = db.prepare(
@@ -83,8 +99,16 @@ export class UserService {
 				"UPDATE users SET qrSecret = ? WHERE username = ?"
 			);
 			updateQrSecretQuery.run(secret.base32, userName);
+			const tempToken = createWebToken(
+				{
+					userName,
+					email,
+					purpose: TokenPurpose.AWAITING_OTP,
+				},
+				600
+			);
 
-			rep.send({ message: "UserCreated" });
+			rep.send({ message: "UserCreated", tempToken });
 		} catch (error: any) {
 			if (error.code === ErrorCodes.PASSWORDNOTMATCH) {
 				throw {
@@ -107,31 +131,49 @@ export class UserService {
 
 	static async verifyUser(
 		req: FastifyRequest<{
-			Body: { userName: string; otpCode: string };
+			Body: { otpCode: string };
+			Headers: { authorization: string };
 		}>,
 		rep: FastifyReply
 	) {
 		try {
-			const { userName, otpCode } = req.body;
+			const token = req.headers.authorization.replace(
+				/^Bearer\s+/i,
+				""
+			);
+
+			const payload = jwt.verify(token, JWT_SECRET) as {
+				userName: string;
+				email: string;
+				[key: string]: any;
+			};
+
+			const { userName, email } = payload;
+			const { otpCode } = req.body;
 
 			const db = req.server.db;
 
 			const query = db.prepare(
-				"SELECT qrSecret, email FROM users WHERE username = ?"
+				"SELECT qrSecret FROM users WHERE username = ?"
 			);
 			const userInfo: any = query.get(userName);
 
 			if (!otpVerificationCode(userInfo.qrSecret, otpCode)) {
 				throw { code: "Not verify" };
 			}
-			const userToken = createWebToken(userName, userInfo.email);
+			const userToken = createWebToken(
+				{
+					userName,
+					email,
+					purpose: TokenPurpose.AUTH,
+				},
+				86400
+			);
 			rep.code(200).send({
 				message: "Verified OTP Code",
 				token: userToken,
 			});
 		} catch (error: any) {
-			console.error(error);
-
 			if (error.code === "Not verify") {
 				throw {
 					message: "error.auth.notVerify",

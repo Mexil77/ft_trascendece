@@ -25,25 +25,40 @@ export const UserController = (fastify: FastifyInstance) => {
 			return UserService.createUser(req, rep);
 		}
 	);
-	fastify.post(
+
+	fastify.get(
 		"/generateQR",
 		async (
 			req: FastifyRequest<{
-				Body: { userName: string };
+				Headers: { authorization: string };
 			}>,
 			rep: FastifyReply
 		) => {
+			const authHeader = req.headers.authorization;
+			if (!authHeader) {
+				return rep
+					.code(401)
+					.send({ message: "error.auth.TokenNotFound" });
+			}
 			return UserService.generateQR(req, rep);
 		}
 	);
+
 	fastify.post(
 		"/verify",
 		async (
 			req: FastifyRequest<{
-				Body: { userName: string; otpCode: string };
+				Body: { otpCode: string };
+				Headers: { authorization: string };
 			}>,
 			rep: FastifyReply
 		) => {
+			const authHeader = req.headers.authorization;
+			if (!authHeader) {
+				return rep
+					.code(401)
+					.send({ message: "error.auth.TokenNotFound" });
+			}
 			return UserService.verifyUser(req, rep);
 		}
 	);
