@@ -1,13 +1,43 @@
 import { makeForm } from "../components/index.js";
-import { FormTypes } from "../enums/index.js";
+import { FetchMethods, FormTypes } from "../enums/index.js";
+import { apiFetch } from "../fetch.js";
 import { FormData } from "../interfaces/index.js";
 import { NavigateTo } from "../router.js";
 
 const singinForm: FormData = {
 	title: "Singin",
-	submitButton: "Crearr cuenta",
-	submitAction: () => {
-		NavigateTo("/login");
+	submitButton: "Crear cuenta",
+	submitAction: async (e: SubmitEvent) => {
+		try {
+			const form = e.target as HTMLFormElement;
+
+			const formData = new FormData(form);
+
+			const userName = formData.get("userName") as string;
+			const email = formData.get("email") as string;
+			const password = formData.get("password") as string;
+			const confirmPassword = formData.get(
+				"confirmPassword"
+			) as string;
+
+			const tmpToken = await apiFetch({
+				url: "users/",
+				headers: { "Content-type": "application/json" },
+				method: FetchMethods.POST,
+				body: {
+					userName,
+					email,
+					password,
+					confirmPassword,
+				},
+			});
+			const tmpTokenData = await tmpToken.json();
+			localStorage.setItem("tmpToken", tmpTokenData.tmpToken);
+
+			NavigateTo("/validate");
+		} catch (error) {
+			console.error(error);
+		}
 	},
 	sections: [
 		{
@@ -17,19 +47,29 @@ const singinForm: FormData = {
 					type: FormTypes.TEXT,
 					label: "Nombre",
 					placeholder: "Nombre",
-					id: "Nombre1",
+					id: "userName",
+					name: "userName",
 				},
 				{
 					type: FormTypes.EMAIL,
 					label: "Correo",
 					placeholder: "Correo",
-					id: "Correo1",
+					id: "email",
+					name: "email",
 				},
 				{
 					type: FormTypes.PASSWORD,
 					label: "password",
 					placeholder: "Contrasena",
 					id: "password",
+					name: "password",
+				},
+				{
+					type: FormTypes.PASSWORD,
+					label: "Confirm password",
+					placeholder: "Repetir contrasena",
+					id: "confirmPassword",
+					name: "confirmPassword",
 				},
 			],
 		},

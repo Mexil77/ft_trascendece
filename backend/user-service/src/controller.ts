@@ -4,7 +4,11 @@ import {
 	FastifyRequest,
 } from "fastify";
 import { UserService } from "./service.js";
-import { CreateUserDto } from "./interfaces/index.js";
+import {
+	AuthUserDto,
+	CreateUserDto,
+	VerifyUserDto,
+} from "./interfaces/index.js";
 
 export const UserController = (fastify: FastifyInstance) => {
 	fastify.get(
@@ -16,6 +20,7 @@ export const UserController = (fastify: FastifyInstance) => {
 			return UserService.getUser(req, rep);
 		}
 	);
+
 	fastify.post(
 		"/",
 		async (
@@ -23,6 +28,55 @@ export const UserController = (fastify: FastifyInstance) => {
 			rep: FastifyReply
 		) => {
 			return UserService.createUser(req, rep);
+		}
+	);
+
+	fastify.post(
+		"/authUser",
+		async (
+			req: FastifyRequest<{
+				Body: AuthUserDto;
+			}>,
+			rep: FastifyReply
+		) => {
+			return UserService.authUser(req, rep);
+		}
+	);
+
+	fastify.get(
+		"/generateQR",
+		async (
+			req: FastifyRequest<{
+				Headers: { authorization: string };
+			}>,
+			rep: FastifyReply
+		) => {
+			const authHeader = req.headers.authorization;
+			if (!authHeader) {
+				return rep
+					.code(401)
+					.send({ message: "error.auth.TokenNotFound" });
+			}
+			return UserService.generateQR(req, rep);
+		}
+	);
+
+	fastify.post(
+		"/verify",
+		async (
+			req: FastifyRequest<{
+				Body: VerifyUserDto;
+				Headers: { authorization: string };
+			}>,
+			rep: FastifyReply
+		) => {
+			const authHeader = req.headers.authorization;
+			if (!authHeader) {
+				return rep
+					.code(401)
+					.send({ message: "error.auth.TokenNotFound" });
+			}
+			return UserService.verifyUser(req, rep);
 		}
 	);
 };

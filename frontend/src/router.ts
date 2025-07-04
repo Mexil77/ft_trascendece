@@ -6,6 +6,7 @@ import {
 	HomePage,
 	ConfigGamePage,
 	GamePage,
+	ValidatePage,
 } from "./pages/index.js";
 
 const routes: Route[] = [
@@ -22,6 +23,11 @@ const routes: Route[] = [
 	{
 		path: "/singin",
 		component: SingInPage,
+		protected: false,
+	},
+	{
+		path: "/validate",
+		component: ValidatePage,
 		protected: false,
 	},
 	{
@@ -63,6 +69,10 @@ const render = () => {
 
 	if (route.protected && !isAuth()) {
 		NavigateTo("/login");
+		return;
+	}
+	if (!route.protected && isAuth()) {
+		NavigateTo("/");
 		return;
 	}
 

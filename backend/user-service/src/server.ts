@@ -19,7 +19,7 @@ const start = async () => {
 		await server.register(cors, {
 			origin: "*",
 			methods: ["GET", "POST", "PUT", "DELETE"],
-			allowedHeaders: ["Context-type", "Authorization"],
+			allowedHeaders: ["Content-type", "Authorization"],
 			credentials: false,
 		});
 		await server.register(UserController);
