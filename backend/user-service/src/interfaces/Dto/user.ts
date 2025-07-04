@@ -4,3 +4,12 @@ export interface CreateUserDto {
 	password: string;
 	confirmPassword: string;
 }
+
+export interface AuthUserDto {
+	userName: string;
+	password: string;
+}
+
+export interface VerifyUserDto {
+	otpCode: string;
+}

@@ -4,7 +4,11 @@ import {
 	FastifyRequest,
 } from "fastify";
 import { UserService } from "./service.js";
-import { CreateUserDto } from "./interfaces/index.js";
+import {
+	AuthUserDto,
+	CreateUserDto,
+	VerifyUserDto,
+} from "./interfaces/index.js";
 
 export const UserController = (fastify: FastifyInstance) => {
 	fastify.get(
@@ -16,6 +20,7 @@ export const UserController = (fastify: FastifyInstance) => {
 			return UserService.getUser(req, rep);
 		}
 	);
+
 	fastify.post(
 		"/",
 		async (
@@ -23,6 +28,18 @@ export const UserController = (fastify: FastifyInstance) => {
 			rep: FastifyReply
 		) => {
 			return UserService.createUser(req, rep);
+		}
+	);
+
+	fastify.post(
+		"/authUser",
+		async (
+			req: FastifyRequest<{
+				Body: AuthUserDto;
+			}>,
+			rep: FastifyReply
+		) => {
+			return UserService.authUser(req, rep);
 		}
 	);
 
@@ -48,7 +65,7 @@ export const UserController = (fastify: FastifyInstance) => {
 		"/verify",
 		async (
 			req: FastifyRequest<{
-				Body: { otpCode: string };
+				Body: VerifyUserDto;
 				Headers: { authorization: string };
 			}>,
 			rep: FastifyReply

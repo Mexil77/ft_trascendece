@@ -11,3 +11,15 @@ export const hashPassword = (password: string) => {
 		hash: hash,
 	};
 };
+
+export const verifyPassword = (
+	password: string,
+	salt: string,
+	hash: string
+): boolean => {
+	const hashToVerify = crypto
+		.pbkdf2Sync(password, salt, 100000, 64, "sha512")
+		.toString("hex");
+
+	return hash === hashToVerify;
+};

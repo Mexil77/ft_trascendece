@@ -6,6 +6,7 @@ import {
 	createWebToken,
 	otpVerificationCode,
 	constructQRByData,
+	verifyPassword,
 } from "./utils/index.js";
 import { CreateUserDto } from "./interfaces/index.js";
 import jwt from "jsonwebtoken";
@@ -99,7 +100,7 @@ export class UserService {
 				"UPDATE users SET qrSecret = ? WHERE username = ?"
 			);
 			updateQrSecretQuery.run(secret.base32, userName);
-			const tempToken = createWebToken(
+			const tmpToken = createWebToken(
 				{
 					userName,
 					email,
@@ -108,7 +109,7 @@ export class UserService {
 				600
 			);
 
-			rep.send({ message: "UserCreated", tempToken });
+			rep.send({ message: "UserCreated", tmpToken });
 		} catch (error: any) {
 			if (error.code === ErrorCodes.PASSWORDNOTMATCH) {
 				throw {
@@ -120,6 +121,64 @@ export class UserService {
 				throw {
 					message: "error.auth.alreadyExist",
 					statusCode: 409,
+				};
+			}
+			return {
+				message: "error.auth.unexpectedError",
+				statusCode: 500,
+			};
+		}
+	}
+
+	static async authUser(
+		req: FastifyRequest<{
+			Body: { userName: string; password: string };
+		}>,
+		rep: FastifyReply
+	) {
+		try {
+			const { userName, password } = req.body;
+
+			const db = req.server.db;
+
+			const queryUserCredentials = db.prepare(
+				"SELECT password,salt,email from users WHERE username = ?"
+			);
+			const userDataCredentials: any =
+				queryUserCredentials.get(userName);
+
+			if (!userDataCredentials)
+				throw { code: ErrorCodes.USERNOTFOUND };
+			if (
+				!verifyPassword(
+					password,
+					userDataCredentials.salt,
+					userDataCredentials.password
+				)
+			)
+				throw { code: ErrorCodes.WRONGPASSWORD };
+
+			const tmpToken = createWebToken(
+				{
+					userName,
+					email: userDataCredentials.email,
+					purpose: TokenPurpose.AWAITING_OTP,
+				},
+				600
+			);
+
+			rep.send({ message: "UserAuth", tmpToken });
+		} catch (error: any) {
+			if (error.code === ErrorCodes.USERNOTFOUND) {
+				throw {
+					message: "error.auth.userNotFound",
+					statusCode: 404,
+				};
+			}
+			if (error.code === ErrorCodes.WRONGPASSWORD) {
+				throw {
+					message: "error.auth.wrongPassword",
+					statusCode: 400,
 				};
 			}
 			return {
