@@ -1,14 +1,30 @@
 import { makeForm } from "../components/index.js";
-import { FormTypes } from "../enums/index.js";
+import { FetchMethods, FormTypes } from "../enums/index.js";
+import { apiFetch } from "../fetch.js";
 import { FormData } from "../interfaces/index.js";
 import { NavigateTo } from "../router.js";
 
 const loginForm: FormData = {
 	title: "Login",
 	submitButton: "Iniciar sesion",
-	submitAction: (e: SubmitEvent) => {
-		localStorage.setItem("authToken", "testtoken");
-		NavigateTo("/");
+	submitAction: async (e: SubmitEvent) => {
+		const form = e.target as HTMLFormElement;
+
+		const formData = new FormData(form);
+
+		const userName = formData.get("userName") as string;
+		const password = formData.get("password") as string;
+
+		const tmpToken = await apiFetch({
+			url: "users/authUser",
+			method: FetchMethods.POST,
+			headers: { "Content-type": "application/json" },
+			body: { userName, password },
+		});
+		const tmpTokenData = await tmpToken.json();
+		localStorage.setItem("tmpToken", tmpTokenData.tmpToken);
+
+		NavigateTo("/validate");
 	},
 	sections: [
 		{
@@ -16,17 +32,17 @@ const loginForm: FormData = {
 			inputs: [
 				{
 					type: FormTypes.TEXT,
-					label: "Nombre",
-					placeholder: "Nombre",
-					id: "Nombre1",
-					name: "Nombre1",
+					label: "Nombre de usuario",
+					placeholder: "nombre de usuario",
+					id: "userName",
+					name: "userName",
 				},
 				{
-					type: FormTypes.EMAIL,
-					label: "Correo",
-					placeholder: "Correo",
-					id: "Correo1",
-					name: "Correo1",
+					type: FormTypes.PASSWORD,
+					label: "Password",
+					placeholder: "****...",
+					id: "password",
+					name: "password",
 				},
 			],
 		},

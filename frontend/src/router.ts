@@ -71,6 +71,10 @@ const render = () => {
 		NavigateTo("/login");
 		return;
 	}
+	if (!route.protected && isAuth()) {
+		NavigateTo("/");
+		return;
+	}
 
 	app.appendChild(route.component());
 };

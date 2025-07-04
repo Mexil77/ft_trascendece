@@ -7,7 +7,7 @@ import { NavigateTo } from "../router.js";
 const getQR = async () => {
 	try {
 		const res = await apiFetch({
-			url: "http://localhost:3000/api/users/generateQR",
+			url: "users/generateQR",
 			headers: {
 				authorization: `Bearer ${localStorage.getItem("tmpToken")}`,
 			},
@@ -41,7 +41,7 @@ const validateCodeForm: FormData = {
 			const otpCode = formData.get("otpCode") as string;
 
 			const res = await apiFetch({
-				url: "http://localhost:3000/api/users/verify",
+				url: "users/verify",
 				headers: {
 					"Content-Type": "application/json",
 					authorization: `Bearer ${localStorage.getItem("tmpToken")}`,

@@ -11,5 +11,5 @@ export const apiFetch = async ({
 		...(headers ? { headers } : {}),
 		...(body ? { body: JSON.stringify(body) } : {}),
 	};
-	return await fetch(url, fetchConfig);
+	return await fetch(`http://localhost:3000/api/${url}`, fetchConfig);
 };

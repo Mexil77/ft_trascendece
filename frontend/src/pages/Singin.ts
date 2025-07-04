@@ -21,7 +21,7 @@ const singinForm: FormData = {
 			) as string;
 
 			const tmpToken = await apiFetch({
-				url: "http://localhost:3000/api/users/",
+				url: "users/",
 				headers: { "Content-type": "application/json" },
 				method: FetchMethods.POST,
 				body: {
@@ -32,7 +32,7 @@ const singinForm: FormData = {
 				},
 			});
 			const tmpTokenData = await tmpToken.json();
-			localStorage.setItem("tmpToken", tmpTokenData.tempToken);
+			localStorage.setItem("tmpToken", tmpTokenData.tmpToken);
 
 			NavigateTo("/validate");
 		} catch (error) {
