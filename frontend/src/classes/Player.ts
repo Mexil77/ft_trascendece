@@ -52,4 +52,22 @@ export class Player {
 		if (this.colidePoint(this.posX + 1, canvasHeight))
 			this.posY = canvasHeight - this.height;
 	}
+
+	drawPlayer(ctx: CanvasRenderingContext2D) {
+		ctx.fillStyle = this.color;
+		ctx.fillRect(this.posX, this.posY, this.width, this.height);
+	}
+
+	drawScore(
+		ctx: CanvasRenderingContext2D,
+		canvasGame: HTMLCanvasElement
+	) {
+		ctx.fillStyle = this.color;
+		ctx.font = "12px Arial";
+		const widthSide =
+			this.sideBoard === Directions.LEFT
+				? canvasGame.width / 4
+				: (3 * canvasGame.width) / 4;
+		ctx.fillText(this.score, widthSide, 20);
+	}
 }

@@ -1,5 +1,10 @@
 import { Player, Ball } from "./index.js";
-import { Orientation, Directions } from "../enums/index.js";
+import {
+	Orientation,
+	Directions,
+	FetchMethods,
+} from "../enums/index.js";
+import { apiFetch } from "../fetch.js";
 
 export class Game {
 	MaxPoints = 0;
@@ -9,6 +14,7 @@ export class Game {
 	cpu: Player | null = null;
 	ball: Ball | null = null;
 	orientation: Orientation | null = null;
+	sendResultButton?: HTMLButtonElement;
 
 	keys = {
 		w: false,
@@ -18,27 +24,25 @@ export class Game {
 	constructor(maxPoints: number, orientation: Orientation) {
 		this.MaxPoints = maxPoints;
 		this.canvasGame.id = "pong";
-		this.canvasGame.className = "border bg-gray-950";
-		this.canvasGame.width = 800;
-		this.canvasGame.height = 500;
+		this.canvasGame.className = "w-full h-full";
 		this.ctx = this.canvasGame.getContext("2d");
 
 		this.orientation = orientation;
 		this.user = new Player(
-			0,
+			2,
 			this.canvasGame.height / 2 - 50,
-			10,
-			100,
+			2,
+			40,
 			7,
 			"white",
 			"0",
 			Directions.LEFT
 		);
 		this.cpu = new Player(
-			this.canvasGame.width - 10,
+			this.canvasGame.width - 7,
 			this.canvasGame.height / 2 - 50,
-			10,
-			100,
+			2,
+			40,
 			7,
 			"white",
 			"0",
@@ -47,10 +51,10 @@ export class Game {
 		this.ball = new Ball(
 			this.canvasGame.width / 2,
 			this.canvasGame.height / 2,
-			10,
-			5,
-			5,
-			5,
+			3,
+			3,
+			3,
+			3,
 			"white"
 		);
 
@@ -69,27 +73,15 @@ export class Game {
 	private intervalId: number | null = null;
 	static currentInstance: Game | null = null;
 
-	drawRect(
-		x: number,
-		y: number,
-		w: number,
-		h: number,
-		color: string
-	) {
+	cleanScrean() {
 		if (this.ctx) {
-			this.ctx.fillStyle = color;
-			this.ctx.fillRect(x, y, w, h);
-		}
-	}
-
-	// Dibujar círculo (pelota)
-	drawCircle(x: number, y: number, r: number, color: string) {
-		if (this.ctx) {
-			this.ctx.fillStyle = color;
-			this.ctx.beginPath();
-			this.ctx.arc(x, y, r, 0, Math.PI * 2, false);
-			this.ctx.closePath();
-			this.ctx.fill();
+			this.ctx.fillStyle = "#000";
+			this.ctx.fillRect(
+				0,
+				0,
+				this.canvasGame.width,
+				this.canvasGame.height
+			);
 		}
 	}
 
@@ -151,7 +143,6 @@ export class Game {
 			this.ball.speed += 0.5;
 		}
 
-		// puntua jugador
 		if (
 			this.ball &&
 			this.cpu &&
@@ -164,7 +155,7 @@ export class Game {
 			this.ball &&
 			this.ball.posX + this.ball.radius > this.canvasGame.width
 		) {
-			this.user.score = `${Number(this.user?.score) + 1}`;
+			this.user.score = `${Number(this.user.score) + 1}`;
 			this.resetBall();
 		}
 	};
@@ -173,57 +164,25 @@ export class Game {
 		this.ball = new Ball(
 			this.canvasGame.width / 2,
 			this.canvasGame.height / 2,
-			10,
-			5,
-			this.ball && this.ball.velocityX > 0 ? -5 : 5,
-			5,
+			3,
+			3,
+			this.ball && this.ball.velocityX > 0 ? -3 : 3,
+			3,
 			"white"
 		);
 	}
 
 	// Dibujar todo
 	render() {
-		this.drawRect(
-			0,
-			0,
-			this.canvasGame.width,
-			this.canvasGame.height,
-			"#000"
-		); // fondo
-		this.drawText(
-			this.user?.score ?? "",
-			this.canvasGame.width / 4,
-			50,
-			"white"
-		);
-		this.drawText(
-			this.cpu?.score ?? "",
-			(3 * this.canvasGame.width) / 4,
-			50,
-			"white"
-		);
+		this.cleanScrean();
+		if (this.ctx) {
+			this.user?.drawPlayer(this.ctx);
+			this.user?.drawScore(this.ctx, this.canvasGame);
 
-		this.drawRect(
-			this.user?.posX ?? 0,
-			this.user?.posY ?? 0,
-			this.user?.width ?? 0,
-			this.user?.height ?? 0,
-			this.user?.color ?? ""
-		);
-		this.drawRect(
-			this.cpu?.posX ?? 0,
-			this.cpu?.posY ?? 0,
-			this.cpu?.width ?? 0,
-			this.cpu?.height ?? 0,
-			this.cpu?.color ?? ""
-		);
-		if (this.ball) {
-			this.drawCircle(
-				this.ball.posX,
-				this.ball.posY,
-				this.ball.radius,
-				this.ball.color
-			);
+			this.cpu?.drawPlayer(this.ctx);
+			this.cpu?.drawScore(this.ctx, this.canvasGame);
+
+			this.ball?.drawBall(this.ctx);
 		}
 	}
 
@@ -236,12 +195,13 @@ export class Game {
 		) {
 			this.stopGame();
 		}
-		console.log("GameLoop");
+		console.log("GameRuning");
 	}
 
 	startGame() {
 		this.stopGame();
 		const framePerSecond = 60;
+		if (this.sendResultButton) this.sendResultButton.disabled = true;
 		this.intervalId = window.setInterval(
 			() => this.game(),
 			1000 / framePerSecond
@@ -252,6 +212,29 @@ export class Game {
 		if (this.intervalId !== null) {
 			clearInterval(this.intervalId);
 			this.intervalId = null;
+			if (this.sendResultButton) {
+				this.sendResultButton.disabled = false;
+				this.sendResultButton.addEventListener("click", () => {
+					this.registerMatch();
+				});
+			}
+		}
+	}
+
+	async registerMatch() {
+		try {
+			const res = await apiFetch({
+				url: "match",
+				headers: {
+					authorization: `Bearer ${localStorage.getItem(
+						"authToken"
+					)}`,
+				},
+				method: FetchMethods.POST,
+				body: { player1: "ema", player2: "cpu" },
+			});
+		} catch (error) {
+			console.error(error);
 		}
 	}
 }

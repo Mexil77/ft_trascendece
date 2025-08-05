@@ -79,6 +79,12 @@ const controlsConfigGame: ControlConfig[] = [
 	},
 ];
 
+const storageConfigGameData = (
+	configGame: Record<string, string>
+) => {
+	localStorage.setItem("configGame", JSON.stringify(configGame));
+};
+
 export const ConfigGamePage = () => {
 	const ConfigGamePageDiv = document.createElement("div");
 	ConfigGamePageDiv.className =
@@ -134,6 +140,14 @@ export const ConfigGamePage = () => {
 		"p-2 text-xl bg-green-800 text-white hover:border hover:bg-green-600 rounded";
 	startGameButton.textContent = "Empezar juego";
 	startGameButton.addEventListener("click", () => {
+		const maxPoints = document.getElementById(
+			ControlType.MAXPOINTS
+		)?.textContent;
+		const maxTime = document.getElementById(
+			ControlType.MAXTIME
+		)?.textContent;
+		if (!maxPoints || !maxTime) return;
+		storageConfigGameData({ maxPoints, maxTime });
 		NavigateTo("/game");
 	});
 
