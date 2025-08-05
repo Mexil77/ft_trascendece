@@ -1,0 +1,23 @@
+{
+	"name": "match-service",
+	"version": "1.0.0",
+	"description": "",
+	"main": "./src/server.js",
+	"type": "module",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"dev": "concurrently \"npm:server:dev\"",
+		"watch:tsc": "tsc --watch",
+		"server:dev": "nodemon --legacy-watch src --ext ts,js,json --exec \"node dist/server.js\""
+	},
+	"dependencies": {
+		"@fastify/cors": "^11.1.0",
+		"better-sqlite3": "^12.2.0",
+		"fastify": "^5.4.0"
+	},
+	"devDependencies": {
+		"@types/better-sqlite3": "^7.6.13",
+		"concurrently": "^9.2.0",
+		"nodemon": "^3.1.10"
+	}
+}

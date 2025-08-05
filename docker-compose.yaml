@@ -24,6 +24,18 @@ services:
     environment:
       - PORT=3002
 
+  match-service:
+    build: ./backend/match-service
+    volumes:
+      - ./backend/match-service:/app
+      - /app/node_modules
+    working_dir: /app
+    command: npm run dev
+    ports:
+      - "3003:3003"
+    environment:
+      - PORT=3003
+
   nginx:
     image: nginx:latest
     volumes:
@@ -33,3 +45,4 @@ services:
     depends_on:
       - auth-service
       - user-service
+      - match-service
