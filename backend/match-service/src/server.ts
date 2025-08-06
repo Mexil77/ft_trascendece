@@ -11,7 +11,7 @@ server.setErrorHandler((error, _, reply) => {
 
 const connectionSettings = {
 	host: "0.0.0.0",
-	port: Number(process.env.PORT) || 3002,
+	port: Number(process.env.PORT) || 3003,
 };
 
 const start = async () => {

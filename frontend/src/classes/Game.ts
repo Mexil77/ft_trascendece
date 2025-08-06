@@ -3,6 +3,7 @@ import {
 	Orientation,
 	Directions,
 	FetchMethods,
+	DefaultPlayers,
 } from "../enums/index.js";
 import { apiFetch } from "../fetch.js";
 
@@ -29,6 +30,7 @@ export class Game {
 
 		this.orientation = orientation;
 		this.user = new Player(
+			localStorage.getItem("userName") ?? "",
 			2,
 			this.canvasGame.height / 2 - 50,
 			2,
@@ -39,6 +41,7 @@ export class Game {
 			Directions.LEFT
 		);
 		this.cpu = new Player(
+			DefaultPlayers.CPU_PLAYER,
 			this.canvasGame.width - 7,
 			this.canvasGame.height / 2 - 50,
 			2,
@@ -223,16 +226,27 @@ export class Game {
 
 	async registerMatch() {
 		try {
-			const res = await apiFetch({
-				url: "match",
-				headers: {
-					authorization: `Bearer ${localStorage.getItem(
-						"authToken"
-					)}`,
-				},
-				method: FetchMethods.POST,
-				body: { player1: "ema", player2: "cpu" },
-			});
+			if (this.user && this.cpu) {
+				const res = await apiFetch({
+					url: "matches/",
+					headers: {
+						authorization: `Bearer ${localStorage.getItem(
+							"authToken"
+						)}`,
+						"Content-Type": "application/json",
+					},
+					method: FetchMethods.POST,
+					body: {
+						player1Id: this.user.playerName,
+						player2Id: this.cpu.playerName,
+						score1: `${this.user.score}`,
+						score2: `${this.cpu.score}`,
+						limitScore: `${this.MaxPoints}`,
+						limitTime: "180",
+						matchTime: "60",
+					},
+				});
+			}
 		} catch (error) {
 			console.error(error);
 		}

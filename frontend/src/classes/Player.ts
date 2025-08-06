@@ -1,6 +1,7 @@
 import { Directions } from "../enums/index.js";
 
 export class Player {
+	playerName: string = "";
 	posX: number = 0;
 	posY: number = 0;
 	width: number = 0;
@@ -11,6 +12,7 @@ export class Player {
 	sideBoard: Directions = Directions.LEFT;
 
 	constructor(
+		playerName: string,
 		posX: number,
 		posY: number,
 		width: number,
@@ -20,6 +22,7 @@ export class Player {
 		score: string,
 		sideBoard: Directions
 	) {
+		this.playerName = playerName;
 		this.posX = posX;
 		this.posY = posY;
 		this.width = width;

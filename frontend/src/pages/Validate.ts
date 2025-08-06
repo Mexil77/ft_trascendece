@@ -53,6 +53,7 @@ const validateCodeForm: FormData = {
 			});
 			const data = await res.json();
 			localStorage.setItem("authToken", data.token);
+			localStorage.setItem("userName", data.userName);
 			localStorage.removeItem("tmpToken");
 			NavigateTo("/");
 		} catch (error) {

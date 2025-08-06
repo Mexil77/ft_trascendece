@@ -14,7 +14,7 @@ export const generateQRByUrl = async (
 
 export const constructQRByData = async (qrSecret: string) => {
 	return QRCode.toDataURL(
-		`otpauth://totp/SecretKey?secret=${qrSecret}`
+		`otpauth://totp/EmaTrascendence?secret=${qrSecret}`
 	);
 };
 

@@ -88,12 +88,14 @@ export class UserService {
 				"INSERT INTO users (username, email, password, salt) VALUES (?, ?, ?, ?)"
 			);
 
-			query.run(
+			const result = query.run(
 				userName,
 				email,
 				passwordStruct.hash,
 				passwordStruct.salt
 			);
+
+			const userId = result.lastInsertRowid;
 
 			const secret = await generateSecret();
 			const updateQrSecretQuery = db.prepare(
@@ -102,6 +104,7 @@ export class UserService {
 			updateQrSecretQuery.run(secret.base32, userName);
 			const tmpToken = createWebToken(
 				{
+					userId: String(userId),
 					userName,
 					email,
 					purpose: TokenPurpose.AWAITING_OTP,
@@ -142,7 +145,7 @@ export class UserService {
 			const db = req.server.db;
 
 			const queryUserCredentials = db.prepare(
-				"SELECT password,salt,email from users WHERE username = ?"
+				"SELECT id,password,salt,email from users WHERE username = ?"
 			);
 			const userDataCredentials: any =
 				queryUserCredentials.get(userName);
@@ -160,6 +163,7 @@ export class UserService {
 
 			const tmpToken = createWebToken(
 				{
+					userId: userDataCredentials.id,
 					userName,
 					email: userDataCredentials.email,
 					purpose: TokenPurpose.AWAITING_OTP,
@@ -213,7 +217,7 @@ export class UserService {
 			const db = req.server.db;
 
 			const query = db.prepare(
-				"SELECT qrSecret FROM users WHERE username = ?"
+				"SELECT id,qrSecret FROM users WHERE username = ?"
 			);
 			const userInfo: any = query.get(userName);
 
@@ -222,6 +226,7 @@ export class UserService {
 			}
 			const userToken = createWebToken(
 				{
+					userId: userInfo.id,
 					userName,
 					email,
 					purpose: TokenPurpose.AUTH,
@@ -231,6 +236,7 @@ export class UserService {
 			rep.code(200).send({
 				message: "Verified OTP Code",
 				token: userToken,
+				userName,
 			});
 		} catch (error: any) {
 			if (error.code === "Not verify") {
