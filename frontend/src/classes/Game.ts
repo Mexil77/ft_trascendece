@@ -6,9 +6,24 @@ import {
 	DefaultPlayers,
 } from "../enums/index.js";
 import { apiFetch } from "../fetch.js";
+import { ConfigGame } from "../interfaces/index.js";
+
+export const timeStrToNumber = (timeStr: string) => {
+	const [minutes, seconds] = timeStr.split(":").map(Number);
+	return minutes * 60 + seconds;
+};
+
+export const timeNumberToStr = (timeNumber: number) => {
+	const minutes = Math.floor(timeNumber / 60);
+	const seconds = timeNumber % 60;
+	return `${minutes.toString().padStart(2, "0")}:${seconds
+		.toString()
+		.padStart(2, "0")}`;
+};
 
 export class Game {
 	MaxPoints = 0;
+	MaxTime = 0;
 	canvasGame = document.createElement("canvas");
 	ctx: CanvasRenderingContext2D | null;
 	user: Player | null = null;
@@ -22,8 +37,9 @@ export class Game {
 		s: false,
 	};
 
-	constructor(maxPoints: number, orientation: Orientation) {
-		this.MaxPoints = maxPoints;
+	constructor(configGame: ConfigGame, orientation: Orientation) {
+		this.MaxPoints = configGame.maxPoints;
+		this.MaxTime = timeStrToNumber(configGame.maxTime);
 		this.canvasGame.id = "pong";
 		this.canvasGame.className = "w-full h-full";
 		this.ctx = this.canvasGame.getContext("2d");

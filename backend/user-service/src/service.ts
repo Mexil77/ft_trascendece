@@ -10,6 +10,7 @@ import {
 } from "./utils/index.js";
 import { CreateUserDto } from "./interfaces/index.js";
 import jwt from "jsonwebtoken";
+import { v4 as uuidv4 } from "uuid";
 
 const JWT_SECRET = process.env.JWT_SECRET ?? "default_dev_secret";
 
@@ -82,20 +83,22 @@ export class UserService {
 				throw { code: ErrorCodes.PASSWORDNOTMATCH };
 			}
 			const passwordStruct = hashPassword(password);
+			const userId = uuidv4();
 
 			const db = req.server.db;
 			const query = db.prepare(
-				"INSERT INTO users (username, email, password, salt) VALUES (?, ?, ?, ?)"
+				"INSERT INTO users (id, username, email, password, salt) VALUES (?, ?, ?, ?, ?)"
 			);
 
 			const result = query.run(
+				userId,
 				userName,
 				email,
 				passwordStruct.hash,
 				passwordStruct.salt
 			);
 
-			const userId = result.lastInsertRowid;
+			// const userId = result.lastInsertRowid;
 
 			const secret = await generateSecret();
 			const updateQrSecretQuery = db.prepare(

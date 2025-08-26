@@ -35,11 +35,10 @@ export const GamePage = () => {
 
 	(() => {
 		const configGame = getConfig();
+		console.log("configGame", configGame);
+
 		// Crea la nueva instancia y guárdala en la propiedad estática
-		const gameBoard = new Game(
-			configGame.maxPoints,
-			Orientation.HORIZONTAL
-		);
+		const gameBoard = new Game(configGame, Orientation.HORIZONTAL);
 
 		gameBoard.sendResultButton = sendResultButton;
 

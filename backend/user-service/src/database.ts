@@ -11,7 +11,7 @@ function dbConnector(fastify: FastifyInstance) {
 
 	db.exec(`
     CREATE TABLE IF NOT EXISTS users (
-      id INTEGER UNIQUE PRIMARY KEY AUTOINCREMENT,
+      id TEXT PRIMARY KEY,
       username TEXT UNIQUE NOT NULL,
       email TEXT UNIQUE NOT NULL,
       password TEXT,

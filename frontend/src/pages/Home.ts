@@ -1,6 +1,26 @@
+import { Table } from "../components/index.js";
+import { FetchMethods } from "../enums/fetchMethods.js";
+import { apiFetch } from "../fetch.js";
 import { NavigateTo } from "../router.js";
 
 const cardButtons = ["Local", "En linea", "Multijugador"];
+
+const getMatches = async () => {
+	try {
+		const res = await apiFetch({
+			url: "matches/",
+			headers: {
+				authorization: `Bearer ${localStorage.getItem("authToken")}`,
+			},
+			method: FetchMethods.GET,
+		});
+		const data = await res.json();
+		return data.data;
+	} catch (error) {
+		console.error(error);
+		return null;
+	}
+};
 
 export const HomePage = () => {
 	const pageDiv = document.createElement("div");
@@ -42,9 +62,30 @@ export const HomePage = () => {
 
 	const statsDiv = document.createElement("div");
 	statsDiv.className =
-		"border rounded-md border-white border-dashed w-full h-48 text-white text-xl flex justify-center items-center";
-	statsDiv.textContent = "No tienes estadisticas aun";
-	statsSectionDiv.appendChild(statsDiv);
+		"border rounded-md border-white border-dashed w-full text-white text-xl flex-col justify-center items-center";
+
+	(async () => {
+		const matches = await getMatches();
+		if (!matches) {
+			statsDiv.className += " h-48";
+			statsDiv.textContent = "No tienes estadisticas aun";
+		} else {
+			statsSectionDiv.appendChild(
+				Table(
+					[
+						"Jugador1",
+						"Puntaje1",
+						"Puntaje2",
+						"Jugador2",
+						"Puntos a ganar",
+						"Tiempo limitre",
+						"Tiempo jugado",
+					],
+					matches
+				)
+			);
+		}
+	})();
 
 	pageDiv.appendChild(statsSectionDiv);
 	return pageDiv;

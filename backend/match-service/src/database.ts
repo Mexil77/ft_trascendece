@@ -11,9 +11,11 @@ function dbConnector(fastify: FastifyInstance) {
 
 	db.exec(`
     CREATE TABLE IF NOT EXISTS matches (
-      id INTEGER UNIQUE PRIMARY KEY AUTOINCREMENT,
+      id TEXT PRIMARY KEY,
       player1Id TEXT NOT NULL,
       player2Id TEXT NOT NULL,
+      player1Name TEXT NOT NULL,
+      player2Name TEXT NOT NULL,
       score1 INTEGER NOT NULL,
       score2 INTEGER NOT NULL,
       limitScore INTEGER NOT NULL,
